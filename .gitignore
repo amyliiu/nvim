@@ -4,4 +4,6 @@ test.sh
 nvim
 
 spell/
-lazy-lock.json
+.nvimlog
+.version482/
+plugin/version482.vim

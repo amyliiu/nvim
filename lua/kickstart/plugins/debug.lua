@@ -62,6 +62,13 @@ return {
       desc = 'Debug: Toggle Breakpoint',
     },
     {
+      '<leader>dt',
+      function()
+        require('dap-go').debug_test()
+      end,
+      desc = 'Debug Go Test',
+    },
+    {
       '<leader>B',
       function()
         require('dap').set_breakpoint(vim.fn.input 'Breakpoint condition: ')
