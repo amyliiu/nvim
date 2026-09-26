@@ -7,3 +7,5 @@ spell/
 .nvimlog
 .version482/
 plugin/version482.vim
+
+.DS_Store
