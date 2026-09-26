@@ -134,8 +134,8 @@ vim.o.signcolumn = 'yes'
 -- Decrease update time
 vim.o.updatetime = 250
 
--- Decrease mapped sequence wait time
-vim.o.timeoutlen = 300
+-- How long to wait after Space for the next key. Space then f formats the file.
+vim.o.timeoutlen = 1000
 
 -- Configure how new splits should be opened
 vim.o.splitright = true
@@ -759,20 +759,9 @@ require('lazy').setup({
   },
   { -- Autoformat & Import Organization
     'stevearc/conform.nvim',
+    dependencies = { 'mason-org/mason.nvim' },
     event = { 'BufWritePre' },
     cmd = { 'ConformInfo' },
-    keys = {
-      {
-        '<leader>f',
-        function()
-          -- Normal mode only, so this always formats the whole buffer.
-          -- Visual mode would format just the selection.
-          require('conform').format { async = true, lsp_format = 'fallback' }
-        end,
-        mode = 'n',
-        desc = '[F]ormat buffer',
-      },
-    },
     opts = {
       notify_on_error = true,
       default_format_opts = {
@@ -1003,6 +992,29 @@ require('lazy').setup({
     },
   },
 })
+
+-- Space then f formats the whole file. Set after plugins so this mapping wins.
+vim.keymap.set('n', '<leader>f', function()
+  local ok, conform = pcall(require, 'conform')
+  if not ok then
+    vim.notify('Formatter is not loaded', vim.log.levels.ERROR)
+    return
+  end
+
+  conform.format({ async = true, timeout_ms = 3000, lsp_format = 'fallback' }, function(err, did_edit)
+    local name = vim.fn.expand '%:t'
+    if name == '' then
+      name = 'buffer'
+    end
+    if err then
+      vim.notify('Format failed: ' .. err, vim.log.levels.ERROR)
+    elseif did_edit then
+      vim.notify('Formatted ' .. name, vim.log.levels.INFO)
+    else
+      vim.notify('No formatter for ' .. name .. ' (install stylua, gofmt, or the language server)', vim.log.levels.WARN)
+    end
+  end)
+end, { desc = '[F]ormat buffer' })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
