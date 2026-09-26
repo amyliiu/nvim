@@ -243,6 +243,35 @@ end
 local rtp = vim.opt.rtp
 rtp:prepend(lazypath)
 
+-- Neovim looks up `require 'kickstart...'` on the config runtime path. That path
+-- misses these files when init.lua is symlinked or the lua/ folder was not checked out.
+-- Load them from the directory that actually contains this init.lua, and skip a
+-- missing file instead of aborting startup.
+local function kickstart_plugin(modname)
+  local source = debug.getinfo(1, 'S').source
+  local init_file = source:sub(1, 1) == '@' and source:sub(2) or source
+  local root = vim.fn.fnamemodify(vim.fn.resolve(init_file), ':h')
+  rtp:prepend(root)
+  local path = root .. '/lua/' .. modname:gsub('%.', '/') .. '.lua'
+  if vim.fn.filereadable(path) ~= 1 then
+    return nil
+  end
+  local chunk, err = loadfile(path)
+  if not chunk then
+    vim.notify(err, vim.log.levels.ERROR)
+    return nil
+  end
+  return chunk()
+end
+
+local extra_plugins = {}
+for _, modname in ipairs { 'kickstart.plugins.debug', 'kickstart.plugins.autopairs' } do
+  local spec = kickstart_plugin(modname)
+  if spec then
+    table.insert(extra_plugins, spec)
+  end
+end
+
 -- [[ Configure and install plugins ]]
 --
 --  To check the current status of your plugins, run
@@ -980,21 +1009,14 @@ require('lazy').setup({
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
 
-  -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
-  -- init.lua. If you want these files, they are in the repository, so you can just download them and
-  -- place them in the correct locations.
-
-  -- NOTE: Next step on your Neovim journey: Add/Configure additional plugins for Kickstart
-  --
-  --  Here are some example plugins that I've included in the Kickstart repository.
-  --  Uncomment any of the lines below to enable them (you will need to restart nvim).
-  --
-  require 'kickstart.plugins.debug',
+  -- Optional Kickstart plugins. Uncomment a require after the matching file exists
+  -- under lua/kickstart/plugins/.
   -- require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
-  require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+
+  unpack(extra_plugins),
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
