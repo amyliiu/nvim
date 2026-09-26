@@ -765,18 +765,23 @@ require('lazy').setup({
       {
         '<leader>f',
         function()
-          require('conform').format { async = true, lsp_fallback = true }
+          -- Normal mode only, so this always formats the whole buffer.
+          -- Visual mode would format just the selection.
+          require('conform').format { async = true, lsp_format = 'fallback' }
         end,
-        mode = '',
+        mode = 'n',
         desc = '[F]ormat buffer',
       },
     },
     opts = {
-      notify_on_error = false,
+      notify_on_error = true,
+      default_format_opts = {
+        lsp_format = 'fallback',
+      },
       format_on_save = function()
         return {
           timeout_ms = 500,
-          lsp_fallback = true,
+          lsp_format = 'fallback',
         }
       end,
       -- Adds automatic formatting and import sorting for Go files on save
