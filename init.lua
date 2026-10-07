@@ -738,6 +738,7 @@ require('lazy').setup({
         'stylua',    -- Formatter for Lua
         'gofumpt',   -- Strict formatter for Go
         'goimports', -- Automatic import manager for Go
+        'prettier',  -- Formatter for HTML
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -767,16 +768,30 @@ require('lazy').setup({
       default_format_opts = {
         lsp_format = 'fallback',
       },
-      format_on_save = function()
+      format_on_save = function(bufnr)
+        -- Prettier takes longer to start than stylua and the Go formatters.
+        local timeout_ms = vim.bo[bufnr].filetype == 'html' and 3000 or 500
         return {
-          timeout_ms = 500,
+          timeout_ms = timeout_ms,
           lsp_format = 'fallback',
         }
       end,
+      formatters = {
+        prettier = {
+          -- Use the HTML parser even when the buffer has no .html filename,
+          -- so Space+f works on unsaved HTML buffers.
+          options = {
+            ft_parsers = {
+              html = 'html',
+            },
+          },
+        },
+      },
       -- Adds automatic formatting and import sorting for Go files on save
       formatters_by_ft = {
         lua = { 'stylua' },
         go = { 'goimports', 'gofumpt', 'gofmt' },
+        html = { 'prettier' },
       },
     },
   },
@@ -1044,7 +1059,7 @@ vim.keymap.set('n', '<leader>f', function()
     elseif did_edit then
       vim.notify('Formatted ' .. name, vim.log.levels.INFO)
     else
-      vim.notify('No formatter for ' .. name .. ' (install stylua, gofmt, or the language server)', vim.log.levels.WARN)
+      vim.notify(name .. ' is already formatted', vim.log.levels.INFO)
     end
   end)
 end, { desc = '[F]ormat buffer' })
