@@ -979,6 +979,26 @@ require('lazy').setup({
     },
   },
 
+  { -- Live HTML preview and web helpers: https://github.com/ray-x/web-tools.nvim
+    'ray-x/web-tools.nvim',
+    cmd = {
+      'BrowserSync',
+      'BrowserOpen',
+      'BrowserPreview',
+      'BrowserRestart',
+      'BrowserStop',
+      'TagRename',
+      'HurlRun',
+      'Npm',
+      'Yarn',
+      'Pnpm',
+      'Npx',
+      'Node',
+      'JobStop',
+    },
+    opts = {},
+  },
+
   -- Add more plugins in this file.
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
