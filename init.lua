@@ -738,6 +738,7 @@ require('lazy').setup({
         'stylua',    -- Formatter for Lua
         'gofumpt',   -- Strict formatter for Go
         'goimports', -- Automatic import manager for Go
+        'prettier',  -- Formatter for JavaScript, TypeScript, and other web files
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -773,10 +774,22 @@ require('lazy').setup({
           lsp_format = 'fallback',
         }
       end,
-      -- Adds automatic formatting and import sorting for Go files on save
+      -- Adds automatic formatting and import sorting for Go files on save.
+      -- Prettier formats JavaScript and the other web filetypes it supports.
       formatters_by_ft = {
         lua = { 'stylua' },
         go = { 'goimports', 'gofumpt', 'gofmt' },
+        javascript = { 'prettier' },
+        javascriptreact = { 'prettier' },
+        typescript = { 'prettier' },
+        typescriptreact = { 'prettier' },
+        json = { 'prettier' },
+        jsonc = { 'prettier' },
+        html = { 'prettier' },
+        css = { 'prettier' },
+        scss = { 'prettier' },
+        markdown = { 'prettier' },
+        yaml = { 'prettier' },
       },
     },
   },
@@ -1044,7 +1057,7 @@ vim.keymap.set('n', '<leader>f', function()
     elseif did_edit then
       vim.notify('Formatted ' .. name, vim.log.levels.INFO)
     else
-      vim.notify('No formatter for ' .. name .. ' (install stylua, gofmt, or the language server)', vim.log.levels.WARN)
+      vim.notify('No formatter for ' .. name .. ' (install stylua, gofmt, prettier, or the language server)', vim.log.levels.WARN)
     end
   end)
 end, { desc = '[F]ormat buffer' })
